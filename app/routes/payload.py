@@ -1,51 +1,26 @@
 from app.schemas.schemas import ConectaSchema, EnviaStatusSchema, EnviarConsumosSchema, EnviarEventosSchema
-from app.data_processing.status_processor import status_data_processing
+from app.services.api_send import SendDataToAPI
 from fastapi import APIRouter, Request
 from datetime import datetime
-from os import getenv
-import requests
-import json
 
 router = APIRouter(tags=["rotas de conexão"])
 
-def SendDataToAPI(data):
-    API_URL = getenv("API_URL_TEST")
-
-    if not API_URL:
-        return "error: API_URL_TEST não configurada no .env"
-
-    try:
-        response = requests.post(API_URL, json=data)
-
-        status = response.status_code
-
-        try:
-            content = json.dumps(response.json(), indent=4, ensure_ascii=False)
-        except Exception:
-            content = response.text
-
-        if status != 200:
-            return f"error: {content}"
-
-        return f"success: {content}"
-
-    except Exception as e:
-        return f"error: {str(e)}"
 
 @router.post("/conecta")
 async def handshake(payload: ConectaSchema):
-    data_str = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    currentDate = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-    dados = payload.model_dump()
+    # variavel com os dados validados abaixo
+    data = payload.model_dump()
 
-    print("Resultado do envio para a API\n",SendDataToAPI(dados))
+    
 
     return {
         "status": "OK",
         "mensagem": "",
         "codigo": 1,
         "token": "abc",
-        "dataSistema": data_str
+        "dataSistema": currentDate
     }
 
 async def get_payload(request: Request):
@@ -56,9 +31,10 @@ async def get_payload(request: Request):
 
 @router.put("/enviastatus")
 async def envia_status(payload: EnviaStatusSchema):
-    dados = payload.model_dump()
+    # variavel com os dados validados abaixo
+    data = payload.model_dump()
 
-    print("Resultado do envio para a API\n",SendDataToAPI(dados))
+    print("Resultado do envio para a API\n",SendDataToAPI("status", data))
 
     return {
         "status": "OK",
@@ -69,12 +45,13 @@ async def envia_status(payload: EnviaStatusSchema):
 
 @router.post("/enviareventos")
 async def enviar_eventos(payload: EnviarEventosSchema):
-    dados = payload.model_dump()
 
-    eventos = dados["eventos"]
+    # variavel com os dados validados abaixo
+    data = payload.model_dump()
 
-    print("Eventos recebidos:")
-    print(eventos)
+    eventos = data["eventos"]
+    print("Resultado do envio para a API\n",SendDataToAPI("eventos", eventos))
+
 
     return {
         "result": [
@@ -89,6 +66,8 @@ async def enviar_eventos(payload: EnviarEventosSchema):
 
 @router.put("/enviaconfig1")
 async def enviar_config1(request: Request):
+
+
     payload = await get_payload(request)
 
     if not payload:
@@ -108,9 +87,9 @@ async def enviar_config1(request: Request):
 
 @router.post("/enviarconsumos")
 async def enviar_consumos(payload: EnviarConsumosSchema):
-    dados = payload.model_dump()
 
-    print("Resultado do envio para a API\n",SendDataToAPI(dados))
+    # variavel com os dados validados abaixo
+    dados = payload.model_dump()
 
     return {
         "status": "OK",

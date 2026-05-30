@@ -1,11 +1,13 @@
-from fastapi import Request
 from user_agents import parse
+from fastapi import Request
 from os import getenv
-import httpx
+from datetime import datetime
 import asyncio
+import httpx
 
 def request_info(request: Request) -> dict:
     ua = parse(request.headers.get("User-Agent", ""))
+    currentDate = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     return {
         "IP": request.headers.get(
@@ -17,7 +19,8 @@ def request_info(request: Request) -> dict:
         "OS": f"{ua.os.family} {ua.os.version_string}",
         "Device": ua.device.family,
         "method": request.method,
-        "endpoint": request.url.path
+        "endpoint": request.url.path,
+        "CurrentDate": currentDate
     }
 
 
