@@ -1,3 +1,9 @@
+def conect_data_processing(payload: dict):
+    return {
+        "imei": str(payload["imei"]),
+        "versao_fw": str(payload["versao_fw"])
+    }
+
 def status_data_processing(payload: dict):
     return {
         "moni_id": int(payload["fk_sistema"]),

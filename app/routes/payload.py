@@ -13,7 +13,7 @@ async def handshake(payload: ConectaSchema):
     # variavel com os dados validados abaixo
     data = payload.model_dump()
 
-    
+    print("Resultado do envio para a API\n", SendDataToAPI("conecta", data))
 
     return {
         "status": "OK",
@@ -34,7 +34,7 @@ async def envia_status(payload: EnviaStatusSchema):
     # variavel com os dados validados abaixo
     data = payload.model_dump()
 
-    print("Resultado do envio para a API\n", SendDataToAPI("status", data))
+    print("Resultado do envio para a API\n", SendDataToAPI("/hydric-ingest/status", data))
 
     return {
         "status": "OK",
@@ -51,7 +51,7 @@ async def enviar_eventos(payload: EnviarEventosSchema):
 
     eventos = data["eventos"]
     
-    print("Resultado do envio para a API\n", SendDataToAPI("events", eventos))
+    print("Resultado do envio para a API\n", SendDataToAPI("/hydric-ingest/events", eventos))
 
 
     return {
