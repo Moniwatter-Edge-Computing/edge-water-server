@@ -4,9 +4,9 @@ import requests
 import json
 
 def SendDataToAPI(route, data):
-    API_URL = getenv("API_URL_TEST")
+    API_URL = getenv("API_URL")
     if not API_URL:
-        return "error: API_URL_TEST não configurada no .env"
+        return "error: API_URL não configurada no .env"
 
     try:
         if route == "status":
@@ -17,7 +17,7 @@ def SendDataToAPI(route, data):
             # Caso haja a tentativa de envio em uma 3 rota ( so a duas na API atualmente)
             return print("Não foi possivel realizar o envio")
         
-        response = requests.post(f"{API_URL}/", json=data_processed)
+        response = requests.post(f"{API_URL}/hydric-ingest/{route}", json=data_processed)
 
         status = response.status_code
 

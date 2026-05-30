@@ -50,7 +50,7 @@ async def enviar_eventos(payload: EnviarEventosSchema):
     data = payload.model_dump()
 
     eventos = data["eventos"]
-    print("Resultado do envio para a API\n",SendDataToAPI("eventos", eventos))
+    print("Resultado do envio para a API\n",SendDataToAPI("/eventos", eventos))
 
 
     return {
