@@ -1,6 +1,6 @@
 def status_data_processing(payload: dict):
     return {
-        "moni_id": str(payload["fk_sistema"]),
+        "moni_id": int(payload["fk_sistema"]),
         "data_update": str(payload["data_update"]),
 
         "hidrometro1": float(payload["hidrometro1"]),
