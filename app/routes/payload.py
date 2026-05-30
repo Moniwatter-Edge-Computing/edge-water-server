@@ -1,19 +1,44 @@
-from app.schemas.enviarconsumos import enviarconsumosSchema
-from app.schemas.enviareventos import enviareventosSchema
-from app.schemas.enviastatus import enviastatusSchema
-from app.schemas.conecta import conectaSchema
+from app.schemas.schemas import ConectaSchema, EnviaStatusSchema, EnviarConsumosSchema, EnviarEventosSchema
+from app.data_processing.status_processor import status_data_processing
 from fastapi import APIRouter, Request
 from datetime import datetime
+from os import getenv
+import requests
+import json
 
 router = APIRouter(tags=["rotas de conexão"])
 
+def SendDataToAPI(data):
+    API_URL = getenv("API_URL_TEST")
+
+    if not API_URL:
+        return "error: API_URL_TEST não configurada no .env"
+
+    try:
+        response = requests.post(API_URL, json=data)
+
+        status = response.status_code
+
+        try:
+            content = json.dumps(response.json(), indent=4, ensure_ascii=False)
+        except Exception:
+            content = response.text
+
+        if status != 200:
+            return f"error: {content}"
+
+        return f"success: {content}"
+
+    except Exception as e:
+        return f"error: {str(e)}"
+
 @router.post("/conecta")
-async def handshake(request: Request, payload: conectaSchema):
+async def handshake(payload: ConectaSchema):
     data_str = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
     dados = payload.model_dump()
 
-    print(f"Payload recebido em /conecta:\n{dados}")
+    print("Resultado do envio para a API\n",SendDataToAPI(dados))
 
     return {
         "status": "OK",
@@ -30,18 +55,10 @@ async def get_payload(request: Request):
         return None
 
 @router.put("/enviastatus")
-async def envia_status(request: Request):
-    payload = await get_payload(request)
+async def envia_status(payload: EnviaStatusSchema):
+    dados = payload.model_dump()
 
-    if not payload:
-        print("ERRO, Payload não foi recebido em /enviastatus")
-        return {
-            "status": "OK",
-            "mensagem": "",
-            "possuiNovaConfig": 0
-        }
-
-    print(f"Payload recebido em /enviastatus: \n{payload}")
+    print("Resultado do envio para a API\n",SendDataToAPI(dados))
 
     return {
         "status": "OK",
@@ -51,22 +68,13 @@ async def envia_status(request: Request):
 
 
 @router.post("/enviareventos")
-async def enviar_eventos(request: Request):
-    payload = await get_payload(request)
+async def enviar_eventos(payload: EnviarEventosSchema):
+    dados = payload.model_dump()
 
-    if not payload:
-        print("ERRO, Payload não foi recebido em /enviareventos")
-        return {
-            "result": [
-                {
-                    "status": "NOK",
-                    "mensagem": "",
-                    "id": 0
-                }
-            ]
-        }
+    eventos = dados["eventos"]
 
-    print(f"Payload recebido em /enviareventos: \n{payload}")
+    print("Eventos recebidos:")
+    print(eventos)
 
     return {
         "result": [
@@ -99,17 +107,10 @@ async def enviar_config1(request: Request):
 
 
 @router.post("/enviarconsumos")
-async def enviar_consumos(request: Request):
-    payload = await get_payload(request)
+async def enviar_consumos(payload: EnviarConsumosSchema):
+    dados = payload.model_dump()
 
-    if not payload:
-        print("ERRO, Payload não foi recebido em /enviarconsumos")
-        return {
-            "status": "NOK",
-            "mensagem": ""
-        }
-
-    print(f"Payload recebido em /enviarconsumos: \n{payload}")
+    print("Resultado do envio para a API\n",SendDataToAPI(dados))
 
     return {
         "status": "OK",

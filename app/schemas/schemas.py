@@ -2,20 +2,34 @@ from pydantic import BaseModel, field_validator
 import json
 
 
-class conectaSchema(BaseModel):
+class ConectaSchema(BaseModel):
     imei: str
     versao_fw: str
 
-class enviarconsumosSchema(BaseModel):
+class EnviarConsumosSchema(BaseModel):
     fk_sistema: str
 
     
-class enviareventosSchema(BaseModel):
-    print("em desenvolvimento")
+class EventoSchema(BaseModel):
+    fk_sistema: int
+    dataInicioEvento: str
+    dataFimEvento: str
+    nome: str
+    id_firmware: int
+    status: str
 
-class enviastatusSchema(BaseModel):
+
+class EnviarEventosSchema(BaseModel):
+    eventos: list[EventoSchema]
+
+from pydantic import BaseModel, field_validator, model_validator
+import json
+
+
+class EnviaStatusSchema(BaseModel):
     fk_sistema: int
     data_update: str
+
     entradasDigitais: list[int]
     ip_local: str
     saidasDigitais: list[int]
@@ -33,6 +47,14 @@ class enviastatusSchema(BaseModel):
     hidrometro2: float
     vazaoLitroDiaH1: int
     vazaoLitroDiaH2: int
+
+    @model_validator(mode="before")
+    def flatten_status(cls, values):
+        if "status" in values and isinstance(values["status"], dict):
+            status_data = values.pop("status")
+            values.update(status_data)
+
+        return values
 
     @field_validator("entradasDigitais", "saidasDigitais", mode="before")
     def parse_list(cls, v):

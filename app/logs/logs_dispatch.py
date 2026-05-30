@@ -4,10 +4,6 @@ from os import getenv
 import httpx
 import asyncio
 
-
-LOGVIEW_URL = getenv("LOGVIEW_URL")
-
-
 def request_info(request: Request) -> dict:
     ua = parse(request.headers.get("User-Agent", ""))
 
@@ -26,6 +22,7 @@ def request_info(request: Request) -> dict:
 
 
 async def _send(payload: dict):
+    LOGVIEW_URL = getenv("LOGVIEW_URL")
     if not LOGVIEW_URL:
         print("LOGVIEW_URL não configurada")
         return

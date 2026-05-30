@@ -1,6 +1,6 @@
 from app.logs.logs_dispatch import dispatch_success, dispatch_error
 from fastapi import FastAPI, Request
-from app.routes import payload, conection_routes
+from app.routes import payload
 from dotenv import load_dotenv
 from os import getenv
 
@@ -36,4 +36,3 @@ def health():
     return {"status": "online"}
 
 app.include_router(payload.router)
-app.include_router(conection_routes.router)
