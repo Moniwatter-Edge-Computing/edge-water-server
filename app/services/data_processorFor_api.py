@@ -21,11 +21,16 @@ def status_data_processing(payload: dict):
         "volume_nivel_tanque_superior": int(payload["volumeNivelTanqueSuperior"])
     }
 
-def event_data_processing(payload: dict):
-    return {
-        "moni_id": int["fk_sistema"],
+def event_data_processing(payload_arr):
 
-        "dataInicioEvento": "dataInicioEvento",
+    # o pydantic está retornando um arr(eventos) contendo dentro um dict com todos os dados
+    # por isso ele e acessado abaixo
+    payload = payload_arr[0]
+
+    return {
+        "moni_id": int(payload["fk_sistema"]),
+
+        "dataInicioEvento": str(payload["dataInicioEvento"]),
         "dataFimEvento": str(payload["dataFimEvento"]),
 
         "nome": str(payload["nome"]),

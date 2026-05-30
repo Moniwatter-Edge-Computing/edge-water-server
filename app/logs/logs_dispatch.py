@@ -46,7 +46,6 @@ def dispatch_error(request: Request, message: str = "error"):
 
 def dispatch_success(request: Request, data: dict = None):
     payload = {
-        "status": "OK",
         **(data or {}),
         **request_info(request)
     }

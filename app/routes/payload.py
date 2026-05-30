@@ -34,7 +34,7 @@ async def envia_status(payload: EnviaStatusSchema):
     # variavel com os dados validados abaixo
     data = payload.model_dump()
 
-    print("Resultado do envio para a API\n",SendDataToAPI("status", data))
+    print("Resultado do envio para a API\n", SendDataToAPI("status", data))
 
     return {
         "status": "OK",
@@ -50,7 +50,8 @@ async def enviar_eventos(payload: EnviarEventosSchema):
     data = payload.model_dump()
 
     eventos = data["eventos"]
-    print("Resultado do envio para a API\n",SendDataToAPI("/eventos", eventos))
+    
+    print("Resultado do envio para a API\n", SendDataToAPI("events", eventos))
 
 
     return {

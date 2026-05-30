@@ -1,6 +1,5 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 import json
-
 
 class ConectaSchema(BaseModel):
     imei: str
@@ -9,7 +8,6 @@ class ConectaSchema(BaseModel):
 class EnviarConsumosSchema(BaseModel):
     fk_sistema: str
 
-    
 class EventoSchema(BaseModel):
     fk_sistema: int
     dataInicioEvento: str
@@ -18,12 +16,8 @@ class EventoSchema(BaseModel):
     id_firmware: int
     status: str
 
-
 class EnviarEventosSchema(BaseModel):
     eventos: list[EventoSchema]
-
-from pydantic import BaseModel, field_validator, model_validator
-import json
 
 
 class EnviaStatusSchema(BaseModel):

@@ -27,7 +27,7 @@ def SendDataToAPI(route, data):
             content = response.text
 
         if status != 200:
-            return f"error: {content}"
+            return f"ERROR (status): {content}"
 
         return f"success: {content}"
 

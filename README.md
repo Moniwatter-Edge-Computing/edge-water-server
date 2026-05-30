@@ -40,39 +40,58 @@ A camada de comunicação principal entre o Moniwater e o servidor local será f
 A camada de segurança será baseada em JWT, permitindo que o servidor valide dispositivos autorizados e proteja rotas sensíveis da aplicação.
 
 
-## Estrutura do projeto 
+## Estrutura do projeto
 
 Atualmente o projeto está organizado da seguinte forma:
 
 ```bash
-app/
-├── auth/
-│   └── __init__.py
-│
-├── logs/
+edge-water-server/
+├── app/
+│   ├── auth/
+│   │   └── __init__.py
+│   │
+│   ├── logs/
+│   │   ├── __init__.py
+│   │   └── logs_dispatch.py
+│   │
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   └── payload.py
+│   │
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   └── schemas.py
+│   │
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── api_send.py
+│   │   └── data_processorFor_api.py
+│   │
+│   ├── .env
 │   ├── __init__.py
-│   └── logs_dispatch.py
+│   └── main.py
 │
-├── routes/
-│   ├── __init__.py
-│   └── payload.py
+├── test/
+│   ├── logs.py
+│   ├── requirements.txt
+│   └── test.py
 │
-├── schemas/
-│   ├── __init__.py
-│   └── schemas.py
-│
-├── __init__.py
-└── main.py
+└── .dockerignore
 ```
+
+Essa estrutura foi separada por responsabilidade, facilitando a organização do servidor conforme o projeto for crescendo.
+
+A ideia é evitar que todas as regras fiquem dentro das rotas. As rotas recebem as requisições, os schemas validam os dados, os services realizam o envio e o processamento dos dados, e a camada de logs registra as requisições recebidas pelo servidor.
+
+---
 
 # Resposabilidades
 
-A estrutura foi separada por responsbilidade, facilitando a organização do servidor, conforme o projeto for crescendo
-
 A pasta `auth` tem como responsabilidade concentrar a lógica de autenticação, geração e validação de JWT.
 
-A pasta `logs` tem como responsabilidade enviar todas as requisições `HTTP` para o front-end de logs,
-contendo informações do cabeçalho das requisições recebidas no servidor, como: 
+A pasta `logs` tem como responsabilidade enviar todas as requisições `HTTP` para o front-end de logs.
+
+O arquivo `logs_dispatch.py` concentra a lógica responsável por capturar informações do cabeçalho requisição, como:
 
 * `IP` do cliente;
 * `Porta` acessada pelo cliente; 
@@ -80,8 +99,14 @@ contendo informações do cabeçalho das requisições recebidas no servidor, co
 * `Sistema` operacional do cliente dispositivo utilizado; 
 * `Método` utilizado pelo cliente na requisição
 * `Endpoint` acessado pelo cliente.
+* `Data e hora atual` no momento em que foi enviado a requisição
+
+Essa camada ajuda no debug e no monitoramento das requisições recebidas pelo servidor, principalmente para acompanhar quais rotas estão sendo acessadas e se as respostas estão retornando com sucesso ou erro.
+
 
 A pasta `routes` tem como responsabilidade gerenciar os endpoints que o servidor expõe na rede, como:
+
+O arquivo `payload.py` concentra as rotas principais de comunicação com o Moniwater, como:
 
 * `/conecta` — endpoint de handshake inicial;
 * `/enviastatus` — endpoint de recebimento dos dados de sensores do Moniwater;
@@ -89,25 +114,50 @@ A pasta `routes` tem como responsabilidade gerenciar os endpoints que o servidor
 * `/enviareventos` — endpoint de recebimento dos eventos ocorridos no Moniwater, como alertas;
 * `/enviaconfig1` — endpoint de recebimento das configurações do Moniwater.
 
-A pasta `schemas` tem como responsabilidade definir com a biblioteca Pydantic definir como a estrutura de dados deve ser e também validar se não faltou nenhum dado, além de também já realizar a convserão desses dados para os seus tipos corretos ( caso venham todos os dados definidos na estrutura ).
 
----
+A pasta `schemas` tem como responsabilidade definir, com a biblioteca Pydantic, como a estrutura dos dados deve ser.
 
-## Logs e controle de requisições
+O arquivo `schemas.py` concentra os modelos de validação dos payloads recebidos pelo servidor.
 
-Também foi iniciado o controle das requisições recebidas pela API.
+Essa camada valida se não faltou nenhum dado obrigatório e também pode realizar a conversão dos dados para os tipos corretos, caso os valores recebidos sejam compatíveis com os tipos definidos.
 
-Através do objeto `Request` do FastAPI, é possível capturar informações como:
+Como muitos dados enviados pelo Moniwater chegam em formato de `string`, os schemas ajudam a converter informações para tipos como:
 
 ```bash
-- método HTTP utilizado
-- rota acessada
-- payload enviado
+- int
+- float
+- str
+- list[int]
 ```
 
-Isso ajuda durante o desenvolvimento e debug da aplicação, principalmente para entender quais rotas estão sendo acessadas pela Edge Computing e quais dados estão chegando na API.
+Exemplo:
 
-Futuramente, essa estrutura poderá ser expandida para registrar logs de sucesso, logs de erro, tentativas inválidas de acesso e falhas de validação.
+```bash
+fk_sistema -> int
+hidrometro1 -> float
+nivelPrcTanqueInferior -> int
+entradasDigitais -> list[int]
+```
 
---- 
+O arquivo `main.py` é o ponto principal da aplicação.
+
+Ele é responsável por criar a aplicação FastAPI, configurar a documentação conforme o ambiente, registrar o middleware de logs, criar a rota de health check e incluir as rotas do arquivo `payload.py`.
+
+O arquivo `.env` concentra as variáveis de ambiente utilizadas pelo servidor, como ambiente de execução, URL do serviço de logs e URL da API de destino.
+
+Esse arquivo é importante para separar configurações sensíveis ou variáveis do código-fonte.
+
+A pasta `test` tem como responsabilidade concentrar arquivos utilizados para testes locais do servidor.
+
+O arquivo `test.py` é utilizado para testar automaticamente as rotas principais do servidor, simulando requisições para endpoints como `/conecta`, `/enviastatus`, `/enviareventos` e `/enviarconsumos`.
+
+O arquivo `logs.py` pode ser utilizado para simular ou testar o recebimento dos logs enviados pelo servidor.
+
+O arquivo `requirements.txt` dentro da pasta `test` concentra as dependências necessárias para executar os testes dessa camada, caso ela seja executada de forma separada.
+
+O arquivo `.dockerignore` tem como responsabilidade definir quais arquivos ou pastas não devem ser enviados para o contexto de build do Docker.
+
+Ele ajuda a evitar que arquivos desnecessários, como ambiente virtual, cache do Python e arquivos locais, sejam incluídos na imagem Docker.
+
+
 
